@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar 13 15:35:42 2025
-
-@author: nitya
-"""
 
 from fastapi import FastAPI, WebSocket
 import socketio
