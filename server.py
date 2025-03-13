@@ -1,12 +1,14 @@
-
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
 import socketio
-import random
 
+# Create FastAPI app
 app = FastAPI()
-sio = socketio.AsyncServer(cors_allowed_origins="*")
-sio_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
+# Create Socket.IO server
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+sio_app = socketio.ASGIApp(sio, app)
+
+# Game logic
 games = {}
 
 class Game:
@@ -41,15 +43,14 @@ class Game:
         )
         return {"target": target, "winner": closest_player[1]["name"], "players": self.players}
 
-games = {}
-
+# Socket.IO Events
 @sio.event
 async def connect(sid, environ):
     print(f"Player {sid} connected")
 
 @sio.event
 async def create_game(sid):
-    game_id = str(random.randint(1000, 9999))
+    game_id = str(len(games) + 1)
     games[game_id] = Game(game_id)
     await sio.emit("game_created", {"game_id": game_id}, room=sid)
 
@@ -57,8 +58,8 @@ async def create_game(sid):
 async def join_game(sid, data):
     game_id, name = data["game_id"], data["name"]
     if game_id in games and games[game_id].add_player(sid, name):
-        await sio.emit("player_joined", {"name": name}, room=game_id)
         await sio.enter_room(sid, game_id)
+        await sio.emit("player_joined", {"name": name}, room=game_id)
     else:
         await sio.emit("error", {"message": "Game full or started"}, room=sid)
 
@@ -76,8 +77,8 @@ async def submit_number(sid, data):
 async def disconnect(sid):
     print(f"Player {sid} disconnected")
 
-app.mount("/", sio_app)
-
+# Run ASGI app
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(sio_app, host="0.0.0.0", port=8000)
+
