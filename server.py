@@ -1,8 +1,12 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 import socketio
 
 # Create FastAPI app
 app = FastAPI()
+
+# Serve static files (HTML, CSS, JS)
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 # Create Socket.IO server
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
@@ -81,4 +85,5 @@ async def disconnect(sid):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(sio_app, host="0.0.0.0", port=8000)
+
 
