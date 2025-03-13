@@ -6,7 +6,6 @@ import socketio
 app = FastAPI()
 
 # Serve static files (HTML, CSS, JS)
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 # Create Socket.IO server
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
